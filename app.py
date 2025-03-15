@@ -1,6 +1,11 @@
 import py1337x
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import asyncio
+from torrentp import TorrentDownloader
+import os
+import re
+
 
 torrents = py1337x.Py1337x()
 
@@ -8,7 +13,7 @@ app = Flask(__name__)
 CORS(app)
 
 @app.route("/search_torrent", methods=["POST"])
-def search_anime():
+def search_torrent():
     data = request.get_json()
     query = data.get("query", "").lower()
     page = data.get("page", 1)
@@ -28,22 +33,43 @@ def search_anime():
     })
 
 @app.route("/download_torrent", methods=["POST"])
-def download_anime():
+def download_torrent():
     data = request.json
     magnet_link = data.get("magnet_link")
-    category = data.get("category")  # Will be "Film", "TV-Series", or "Other"
-    
+    category = data.get("category")  # "Film", "TV-Series", "Other"
+
     if not magnet_link or not category:
         return jsonify({"message": "Missing required parameters"}), 400
 
-    # Add your category handling logic here
-    print(f"Downloading {category} with magnet link: {magnet_link}")
-    
-    # Rest of your download logic
-    #torrent_file = TorrentDownloader(magnet_link, '.')
-    #asyncio.run(torrent_file.start_download())
-    
+    # Mappatura delle categorie a percorsi specifici
+    category_paths = {
+        "Film": "/Film/",
+        "TV-Series": "/Serie/",
+        "Other": "/Other/"
+    }
+
+    # Percorso per la categoria scelta
+    category_path = category_paths.get(category)
+
+    # Estrazione della stringa tra 'dn=' e il primo '&'
+    match = re.search(r'dn=([^&]+)', magnet_link)
+    if not match:
+        return jsonify({"message": "Invalid magnet link format"}), 400
+
+    folder_name = match.group(1)
+    download_path = os.path.join(category_path, folder_name)
+
+    # Creazione della cartella se non esiste
+    os.makedirs(download_path, exist_ok=True)
+
+    # Avvio del download
+    torrent_file = TorrentDownloader(magnet_link, download_path)
+    asyncio.run(torrent_file.start_download())
+
+    print(f"Downloading {category} with magnet link: {magnet_link} to {download_path}")
+
     return jsonify({"message": f"{category} download started successfully!"}), 200
 
+
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port="8081")
+    app.run(debug=True, host="0.0.0.0", port="8080")

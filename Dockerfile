@@ -1,4 +1,4 @@
-FROM python:3.11-alpine
+FROM python:3.12-alpine
 
 RUN adduser -D asottile
 RUN addgroup allusers && addgroup asottile allusers
@@ -6,7 +6,7 @@ RUN addgroup allusers && addgroup asottile allusers
 COPY requirements.txt requirements.txt
 
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install -r requirements.txt
+    pip install -r requirements.txt --force
 
 WORKDIR /app
 
