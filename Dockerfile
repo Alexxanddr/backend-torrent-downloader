@@ -1,7 +1,7 @@
 FROM python:3.12-alpine
 
-RUN adduser -D asottile
-RUN addgroup allusers && addgroup asottile allusers
+RUN adduser -D downloader
+RUN addgroup allusers && addgroup downloader allusers
 
 COPY requirements.txt requirements.txt
 
