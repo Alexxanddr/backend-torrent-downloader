@@ -15,7 +15,7 @@ COPY app.py /app
 
 EXPOSE 8080
 
-USER asottile
+USER downloader
 
 CMD ["python", "app.py"]
 
